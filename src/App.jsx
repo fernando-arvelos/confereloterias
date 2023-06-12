@@ -4,7 +4,7 @@ import Home from './pages/Home';
 function App() {
   return (
     <Routes>
-      <Route path="/confereloterias/" Component={ Home } />
+      <Route path="/" Component={ Home } exact />
     </Routes>
   );
 }
