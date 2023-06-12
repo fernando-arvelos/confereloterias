@@ -1,14 +1,15 @@
 import React, { Component } from 'react';
-import resultGames from '../services/result';
-import InputSpaces from '../components/InputSpaces';
+import resultGames from '../services/Result';
 
 class Home extends Component {
   state = {
     nameGame: '',
     numberGame: '',
-    // result: {},
     resultDezenas: [],
     loading: false,
+    numbersPlayed: '',
+    correctNumbers: [],
+    digitsArray: [],
   };
 
   handleChange = ({ target }) => {
@@ -23,16 +24,40 @@ class Home extends Component {
     this.setState({ loading: true });
 
     const result = await resultGames(nameGame, numberGame);
+    this.setState(
+      {
+        resultDezenas: result.dezenas,
+        loading: false,
+      },
+      () => {
+        this.checkNumbers();
+      },
+    );
+  };
+
+  checkNumbers = () => {
+    const { numbersPlayed, resultDezenas } = this.state;
+    const digitsArray = numbersPlayed.replace(/\s/g, '').match(/.{1,2}/g) || [];
+    const correctNumbers = digitsArray.filter((numero) => resultDezenas.includes(numero));
     this.setState({
-      // result,
-      resultDezenas: result.dezenas,
-      loading: false,
+      digitsArray,
+      correctNumbers,
+    });
+  };
+
+  handleInputChange = ({ target }) => {
+    const inputValue = target.value;
+    const formattedValue = inputValue.replace(/\s/g, '').match(/.{1,2}/g)?.join(' ');
+
+    this.setState({
+      numbersPlayed: formattedValue || inputValue,
     });
   };
 
   render() {
-    const { resultDezenas, numberGame, loading } = this.state;
-    // console.log(resultDezenas);
+    const { resultDezenas, numberGame, loading,
+      numbersPlayed, correctNumbers, digitsArray } = this.state;
+
     return (
       <div>
         <form>
@@ -63,11 +88,21 @@ class Home extends Component {
             onChange={ this.handleChange }
           />
 
+          <div>
+            <label htmlFor="userGame">Digite aqui sua aposta</label>
+            <input
+              type="text"
+              id="userGame"
+              value={ numbersPlayed }
+              onChange={ this.handleInputChange }
+            />
+          </div>
+
           <button
             type="button"
             onClick={ this.resultGamesFinal }
           >
-            clique aqui
+            Confira seu resultado
           </button>
         </form>
 
@@ -79,16 +114,35 @@ class Home extends Component {
                 Carregando...
               </p>)
             : (
-              <p>
-                {
-                  resultDezenas.join(' ')
-                }
-              </p>)}
+              <>
+                <h4>Números sorteados</h4>
+                <p>
+                  {
+                    resultDezenas.join(' ')
+                  }
+                </p>
+                <h4>Números Jogados</h4>
+                <p>
+                  {
+                    digitsArray.join(' ')
+                  }
+                </p>
+
+                {correctNumbers.length > 0
+                  && (
+                    <p>
+                      {`Você acertou os números ${correctNumbers
+                        .join(', ')}, em um total de ${correctNumbers.length} números.`}
+                    </p>)}
+
+                {(correctNumbers.length === 0 && resultDezenas.length > 0)
+                && (
+                  <p>
+                    Você não acertou nenhum número.
+                  </p>)}
+              </>)}
         </div>
 
-        <div>
-          <InputSpaces />
-        </div>
       </div>
     );
   }
