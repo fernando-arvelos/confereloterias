@@ -10,6 +10,8 @@ class Home extends Component {
     numbersPlayed: '',
     correctNumbers: [],
     digitsArray: [],
+    result: {},
+    awardedCities: [],
   };
 
   handleChange = ({ target }) => {
@@ -28,6 +30,8 @@ class Home extends Component {
       {
         resultDezenas: result.dezenas,
         loading: false,
+        result,
+        awardedCities: result.estadosPremiados,
       },
       () => {
         this.checkNumbers();
@@ -55,8 +59,8 @@ class Home extends Component {
   };
 
   render() {
-    const { resultDezenas, numberGame, loading,
-      numbersPlayed, correctNumbers, digitsArray } = this.state;
+    const { resultDezenas, numberGame, loading, awardedCities,
+      numbersPlayed, correctNumbers, digitsArray, result } = this.state;
 
     return (
       <div>
@@ -141,6 +145,44 @@ class Home extends Component {
                     Você não acertou nenhum número.
                   </p>)}
               </>)}
+
+          {resultDezenas.length > 0
+              && (
+                <>
+                  <h4>Premiação</h4>
+                  {result.premiacoes.map((premiacao, index) => (
+                    <div key={ index }>
+                      <p>{premiacao.acertos}</p>
+                      {premiacao.vencedores === 0
+                        && 'Não houve ganhadores'}
+                      {premiacao.vencedores === 1
+                        && `${premiacao.vencedores} aposta ganhadora, `}
+                      {premiacao.vencedores > 1
+                        && `${premiacao.vencedores} apostas ganhadoras, `}
+                      {`${premiacao.vencedores > 0 ? `R$ ${premiacao.premio}` : ('')}`}
+                    </div>
+                  ))}
+                </>)}
+
+          {awardedCities.length > 0
+                && (
+                  <>
+                    <h4>Detalhamento</h4>
+                    {result.estadosPremiados.map((estado, index) => (
+                      <div key={ index }>
+                        {estado.cidades.map((cidade, indexCidade) => (
+                          <div key={ indexCidade }>
+                            {`${cidade.cidade} - ${estado.uf}`}
+                          </div>
+                        ))}
+                        {estado.vencedores === '1' && `${estado.vencedores} 
+                          aposta ganhou o prêmio para ${result.dezenas.length} acertos`}
+                        {estado.vencedores > '1' && `${estado.vencedores} apostas 
+                          ganharam o prêmio para ${result.dezenas.length} acertos`}
+                      </div>
+                    ))}
+                  </>
+                )}
         </div>
 
       </div>
