@@ -28,10 +28,10 @@ class Home extends Component {
     const result = await resultGames(nameGame, numberGame);
     this.setState(
       {
-        resultDezenas: result.dezenas,
+        resultDezenas: result.listaDezenas,
         loading: false,
         result,
-        awardedCities: result.estadosPremiados,
+        awardedCities: result.listaMunicipioUFGanhadores,
       },
       () => {
         this.checkNumbers();
@@ -59,8 +59,12 @@ class Home extends Component {
   };
 
   render() {
-    const { resultDezenas, numberGame, loading, awardedCities,
+    const { resultDezenas, nameGame, loading, awardedCities,
       numbersPlayed, correctNumbers, digitsArray, result } = this.state;
+
+    console.log(result);
+    console.log(resultDezenas);
+    console.log(awardedCities);
 
     return (
       <div>
@@ -73,15 +77,13 @@ class Home extends Component {
             onChange={ this.handleChange }
           >
             <option value="" disabled hidden>Escolha um jogo</option>
-            <option value="mega-sena">Mega Sena</option>
+            <option value="megasena">Mega Sena</option>
             <option value="lotofacil">Lotofácil</option>
             <option value="quina">Quina</option>
             <option value="lotomania">Lotomania</option>
             <option value="timemania">Timemania</option>
-            <option value="dupla-sena">Dupla Sena</option>
-            <option value="loteria-federal">Loteria Federal</option>
-            <option value="dia-de-sorte">Dia de Sorte</option>
-            <option value="super-sete">Super Sete</option>
+            <option value="diadesorte">Dia de Sorte</option>
+            <option value="supersete">Super Sete</option>
           </select>
 
           <label htmlFor="contestNumber">Digite o número do Concurso</label>
@@ -110,80 +112,123 @@ class Home extends Component {
           </button>
         </form>
 
-        <div>
-          <h4>{`Resultado do concurso ${numberGame}`}</h4>
-          {loading
-            ? (
-              <p>
-                Carregando...
-              </p>)
-            : (
-              <>
-                <h4>Números sorteados</h4>
-                <p>
-                  {
-                    resultDezenas.join(' ')
-                  }
-                </p>
-                <h4>Números Jogados</h4>
-                <p>
-                  {
-                    digitsArray.join(' ')
-                  }
-                </p>
-
-                {correctNumbers.length > 0
-                  && (
-                    <p>
-                      {`Você acertou os números ${correctNumbers
-                        .join(', ')}, em um total de ${correctNumbers.length} números.`}
-                    </p>)}
-
-                {(correctNumbers.length === 0 && resultDezenas.length > 0)
-                && (
+        {'message' in result
+          ? <p>Número do concurso não existe</p>
+          : Object.keys(result).length > 0
+          && (
+            <div>
+              {loading
+                ? (
                   <p>
-                    Você não acertou nenhum número.
-                  </p>)}
-              </>)}
+                    Carregando...
+                  </p>)
+                : (
+                  <>
+                    <h4>
+                      {`Resultado do concurso 
+                        ${result.numero} (${result.dataApuracao})`}
+                    </h4>
+                    <h4>Números sorteados</h4>
+                    <p>
+                      {
+                        resultDezenas.join(' ')
+                      }
+                    </p>
 
-          {resultDezenas.length > 0
+                    <h4>Números Jogados</h4>
+                    <p>
+                      {
+                        digitsArray.join(' ')
+                      }
+                    </p>
+
+                    {correctNumbers.length > 0
+                      && (
+                        <p>
+                          {`Você acertou os números ${correctNumbers
+                            .join(', ')}, em um total de 
+                            ${correctNumbers.length} números.`}
+                        </p>)}
+
+                    {result.nomeTimeCoracaoMesSorte
+                      .split('').every((char) => char !== '\u0000')
+                      && (
+                        <>
+                          {nameGame === 'timemania'
+                            && (
+                              <h4>Time do Coração</h4>)}
+                          {nameGame === 'diadesorte'
+                            && (
+                              <h4>Mês da Sorte</h4>)}
+                          <p>
+                            {result.nomeTimeCoracaoMesSorte}
+                          </p>
+                        </>)}
+
+                    <h4>
+                      {`Estimativa de prêmio do próximo concurso 
+                      ${result.numeroConcursoProximo} (${result.dataProximoConcurso})`}
+                    </h4>
+                    <p>
+                      {result.valorEstimadoProximoConcurso.toLocaleString(
+                        'pt-BR',
+                        { style: 'currency', currency: 'BRL' },
+                      )}
+                    </p>
+
+                    {(correctNumbers.length === 0 && resultDezenas.length > 0)
+                      && (
+                        <p>
+                          Você não acertou nenhum número.
+                        </p>)}
+                  </>)}
+
+              {resultDezenas.length > 0
               && (
                 <>
                   <h4>Premiação</h4>
-                  {result.premiacoes.map((premiacao, index) => (
+                  {result.listaRateioPremio.map((premiacao, index) => (
                     <div key={ index }>
-                      <p>{premiacao.acertos}</p>
-                      {premiacao.vencedores === 0
+                      <p>{premiacao.descricaoFaixa}</p>
+                      {premiacao.numeroDeGanhadores === 0
                         && 'Não houve ganhadores'}
-                      {premiacao.vencedores === 1
-                        && `${premiacao.vencedores} aposta ganhadora, `}
-                      {premiacao.vencedores > 1
-                        && `${premiacao.vencedores} apostas ganhadoras, `}
-                      {`${premiacao.vencedores > 0 ? `R$ ${premiacao.premio}` : ('')}`}
+                      {premiacao.numeroDeGanhadores === 1
+                        && `${premiacao.numeroDeGanhadores} aposta ganhadora, `}
+                      {premiacao.numeroDeGanhadores > 1
+                        && `${premiacao.numeroDeGanhadores} apostas ganhadoras, `}
+                      {`${premiacao.numeroDeGanhadores > 0
+                        ? `${premiacao.valorPremio.toLocaleString(
+                          'pt-BR',
+                          { style: 'currency', currency: 'BRL' },
+                        )}`
+                        : ('')}`}
                     </div>
                   ))}
                 </>)}
 
-          {awardedCities.length > 0
+              {awardedCities.length > 0
                 && (
                   <>
                     <h4>Detalhamento</h4>
-                    {result.estadosPremiados.map((estado, index) => (
+                    {awardedCities.map((estado, index) => (
                       <div key={ index }>
-                        {estado.cidades.map((cidade, indexCidade) => (
-                          <div key={ indexCidade }>
-                            {`${cidade.cidade} - ${estado.uf}`}
-                          </div>
-                        ))}
-                        {estado.vencedores === '1' && `${estado.vencedores} 
-                          aposta ganhou o prêmio para ${result.dezenas.length} acertos`}
-                        {estado.vencedores > '1' && `${estado.vencedores} apostas 
-                          ganharam o prêmio para ${result.dezenas.length} acertos`}
+                        {estado.municipio === 'CANAL ELETRONICO'
+                          ? <p>{`${estado.municipio}`}</p>
+                          : <p>{`${estado.municipio} - ${estado.uf}`}</p>}
+
+                        {estado.ganhadores === 1
+                          && `1 aposta ganhou o prêmio para 
+                          ${result.listaDezenas.length} acertos`}
+
+                        {estado.ganhadores > 1
+                          && `${estado.ganhadores} apostas
+                          ganharam o prêmio para ${result.listaDezenas.length} acertos`}
+
                       </div>
                     ))}
                   </>
                 )}
-        </div>
+            </div>)}
 
       </div>
     );
